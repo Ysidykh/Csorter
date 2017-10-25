@@ -1,0 +1,148 @@
+/*
+ ============================================================================
+ Name        : project1.c
+ Author      : 
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+///////////////////////// COLUMNS /////////////////////////////////
+
+struct col {
+	char* data;
+};
+
+
+typedef struct col Col;
+
+
+
+
+struct cols_array {
+	Col** Cols;
+	int length;
+
+};
+
+typedef struct cols_array Cols;
+
+
+///////////////////////////////// ROW STRUCTURE /////////////////////////
+struct row {
+	char *buf;
+	Cols *cols;
+};
+typedef struct row Row; //struct 'row' alias
+//ROW FUNCTIONS
+
+Row * row_create(char *buffer) {
+	//allocate memory for the row structure
+	Row *r = (Row*)malloc(sizeof(Row));
+	//allocate memory for the row's buf
+	r->buf = (char*)malloc(strlen(buffer) + 1); //length + null byte
+	//copy data from buffer into buf
+	strcpy(r->buf, buffer);
+	int l = strlen(r->buf);
+	if(r->buf[l-1] == 0x0a) { //checks CRLF (windows and Linux)
+		//if(r->buf[strlen(r->buf)-1] == '\n') THIS ALSO WORKS
+		r->buf[l-1] = 0;
+	}
+	if(r->buf[l-2] == 0x0d) { //checks CRLF (windows only)
+		//if(r->buf[strlen(r->buf)-1] == '\r') THIS ALSO WORKS
+		r->buf[l-2] = 0;
+	}
+	//TODO: parse and store column
+
+
+	return r;
+}
+void row_destroy(Row* row) { //frees memory, contents first, and then structure
+	free(row->buf);
+	free(row);
+}
+
+void row_print(Row* row) { //prints out the contents of the row
+	printf("---- row ---- buf: >>[%s]<<\n", row->buf);
+}
+
+/////////////////////APPENDABLE ARRAY OF ROWS //////////////////////
+
+struct rows_array {
+	Row **arr; //array of pointers to pointers to rows
+	int length; //number of elements in array arr
+};
+typedef struct rows_array Rows; //rows_array alias
+
+Rows * rows_create() { //allocate memory for the array of rows (empty initially)
+	Rows * r = (Rows*)malloc(sizeof(Rows));
+	r->length = 0; //length of zero
+	r->arr = NULL; //points to nothing
+	return r;
+}
+
+void rows_destroy(Rows* rows) { //frees memory of rows array
+	//frees the memory that the Rows in the array point to
+	int i = 0;
+	while(i < rows->length) { //does nothing if length is zero (empty)
+	free(rows->arr[i]);
+	i++;
+}
+	free(rows->arr); //frees the memory allocated for the array arr
+	//frees the pointer to the array structure
+	free(rows);
+}
+
+int rows_append(Rows* rows, Row* row) { //adds a row to the array and returns the new length of the array arr
+	rows->arr = realloc(rows->arr, sizeof(*row)*(rows->length + 1)); //grows the array arr to accomodate a new pointer to a row
+	rows->arr[rows->length] = row; //populates the newly allocated element with the row in the parameter
+	rows->length++;
+	return rows->length; //TODO: returns an int for error handing (improper memory allocation)
+}
+
+void rows_print(Rows* rows) { //prints entire rows structure
+	printf("length of rows array: %d\n", rows->length);
+	for(int i = 0; i < rows->length; i++) {
+		printf("row %d: ",i+1);
+		row_print(rows->arr[i]);
+	}
+}
+
+int main(void) {
+
+	Row *head; //heading (columns)
+	//read first line into buffer
+	char buffer[2048]; //input buffer
+	fgets(buffer,2047,stdin); //header line (sort caregories)
+	head = row_create(buffer);
+	//row_print(head);//DEBUG
+
+
+
+
+
+	Rows* rows = rows_create(); //create empty rows structure with empty array
+
+	//Read the rest of the file line by line into a rows_array structure
+
+	while(fgets(buffer,2047,stdin)) {
+		rows_append(rows, row_create(buffer));
+	}
+	//DEBUG
+	rows_print(rows);
+	//free all allocated memory
+	row_destroy(head);
+	rows_destroy(rows);
+
+	//done
+	return EXIT_SUCCESS;
+
+
+}
+
