@@ -22,45 +22,46 @@ int isLatinScript( short C)
  Compares two strings.
 Compares X to Y.
 If X is less than or equal to Y, then the function returns 1. Otherwise it returns 0.
-This function expects X and Y to be in the context of the Latin Script; the only input that would be valid is anything that belongs to the Latin Scipr in the unicode set.   
+This function expects X and Y to be in the context of the Latin Script; the only input that would be valid is anything that belongs to the Latin Script in the unicode set.   
  */             
 int Compare(char *X, char *Y)
 {
   int Comparison = 1;
-  float XNum;
-  float YNum;
+  float str1Num;
+  float str2Num;
   int i = 0;
   int j = 0;
   char str1[strlen(X)+1];
   char str2[strlen(Y)+1];
-  if( ( (isdigit(X[0]) && (isdigit(X[strlen(X)-1])))) &&( (isdigit(Y[0])) && (isdigit(Y[strlen(X) - 1]))) )
+  for(i = 0;i<strlen(X);i++)
     {
-      XNum = strtof( X, NULL);
-      YNum = strtof(Y, NULL);
-      if(XNum>YNum)
+      if(isLatinScript(X[i])&& isalnum(X[i]))
+	{
+	  str1[j] = X[i];
+	  j++;
+	}
+    }
+  j = 0;
+  for(i =0; i<strlen(Y);i++)
+    {
+      if(isLatinScript(Y[i]) && isalnum(Y[i]))
+	{
+	  str2[j] = Y[i];
+	  j++;
+	}
+    }
+  if( ( (isdigit(str1[0]) && (isdigit(str1[strlen(str1)-1])))) &&( (isdigit(str2[0])) && (isdigit(str2[strlen(str2) - 1]))) )
+    {
+      str1Num = strtof( str1, NULL);
+      str2Num = strtof(str2, NULL);
+      if(str1Num>str2Num)
 	{
 	  Comparison = 0;
+	  printf("%.1f is greater than %.1f\n", str1Num, str2Num);
 	}
     }
   else
     {
-      for(i = 0;i<strlen(X);i++)
-        {
-	  if(isLatinScript(X[i])&& isalnum(X[i]))
-            {
-	      str1[j] = X[i];
-	      j++;
-	    }
-	}
-      j = 0;
-      for(i =0; i<strlen(Y);i++)
-         {
-           if(isLatinScript(Y[i]) && isalnum(Y[i]))
-	     {
-                str2[j] = Y[i];
-		 j++;
-	     }
-	 }
      
 	       int temp =  strcmp(str1, str2);
 	       if(temp>0)
@@ -265,7 +266,7 @@ void merge(Rows *arr, int leftHead, int Middle, int rightHead, int ColumnIndex)
   k = leftHead; // Initial index of merged subarray
   while (i <LeftTempSize  && j < RightTempSize)
     {
-      printf("Comparing %s and %s\n", LeftTempArray[i]->cols->arr[ColumnIndex], RightTempArray[j]->cols->arr[ColumnIndex]);
+      //      printf("Comparing %s and %s\n", LeftTempArray[i]->cols->arr[ColumnIndex], RightTempArray[j]->cols->arr[ColumnIndex]);
       if (Compare(LeftTempArray[i]->cols->arr[ColumnIndex], RightTempArray[j]->cols->arr[ColumnIndex]))
         {
 	  arr->arr[k] = LeftTempArray[i];
@@ -322,10 +323,10 @@ int main(int argc, char **argv)
 
 	//IF 6 parameters, run multiple CSV sort (project 1)
 	//EXAMPLE USAGE:   ./sorter -c  movie_title -d thisdir -o thatdir
-   
+        char* Directory = "";
 	Row *head; //heading (columns)
 	//read first line into buffer
-	char buffer[2048]; //input buffer
+     	char buffer[2048]; //input buffer
         printf("And she's like so whatever....");
 	//analyze input parameters
 	if(!(argc ==3 || argc == 7)) {
@@ -375,7 +376,8 @@ int main(int argc, char **argv)
 		rows_append(rows, row_create(buffer));
 	}
 		mergeSort(rows, 0, 250, Column);
-		num_rows_print(rows, 251);
+			fork();
+		//	num_rows_print(rows, 251);
 	//DEBUG
 	//		rows_print(rows);
 	//free all allocated memory
