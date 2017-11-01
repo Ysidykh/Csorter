@@ -17,6 +17,10 @@
 #include <sys/wait.h>
 #include <ctype.h>
 
+
+
+int Children = 0;
+int Status;
 int isLatinScript( short C)
 {
   return (C>=32 && C<=126);
@@ -571,9 +575,11 @@ void process_dir(char *in_dir_name, char *out_dir_name, const char *sort) {
 	for(i = 0; i < files->length; i++) {
 		//printf("=== process_dir pid=%d PROCSSING FILE #%d\n", pid, i);
 		pid_t pid = fork();
-		if(pid == 0) {
+		if(pid >= 0) {
 			// child
 			//printf("%d, ",pid);
+			waitpid(pid, &Status, 0);
+			Children += WEXITSTATUS(Status);
 			process_file(files->arr[i], out_dir_name, sort);
 		} else {
 			// parent
@@ -600,14 +606,27 @@ int main(int argc, char **argv) {
 	} else if(check_params_result == 1){ //argc = 3 case
 		process_stdin(sort_string);
 	} else if(check_params_result == 2){  //argc = 7 case
+		
 		pid_t pid = getpid();
-		printf("Initial PID: %d\n", pid);
+		pid_t InitialId  = pid;
+		printf("Initial PID: %d", pid);
 		printf("PIDs of all child processes: ");
-		if(pid != 0) {
+		if(pid != 0) 
+		{
 			process_dir(input_dir, output_dir, sort_string);
+			
 			printf("\n");
 			}
+			if(getpid()!=InitialId)
+	 {
+		Children++;
+	 }
+	 else
+	 {
+	 printf("Number of Children: %d", Children);
+	 }
 	}
-	exit(0);
+	 
+//	exit(0);
+exit (Children);
 }
-
